@@ -9,12 +9,17 @@ export default function CSV2JSON() {
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
+    const fileNameWithoutExtension = file.name
+      .split(".")
+      .slice(0, -1)
+      .join(".");
     if (file.type === "text/csv" || file.type === "application/json") {
       setFileName(file.name.split(".").slice(0, -1).join(".")); // Remove extension
       const reader = new FileReader();
 
       reader.onload = () => {
-        setFileContent(reader.result);
+        const fileContent = reader.result;
+        convertFile(fileContent, fileNameWithoutExtension);
       };
 
       reader.readAsText(file);
@@ -35,15 +40,15 @@ export default function CSV2JSON() {
     a.href = url;
     a.download = fileName;
     a.click();
+    a.remove();
   };
 
-  const convertFile = () => {
+  const convertFile = (fileContent, fileName) => {
     let convertedFileName = fileName;
     if (isJson(fileContent)) {
       // Convert JSON to CSV
       const csv = jsonToCSV(JSON.parse(fileContent));
-      convertedFileName += ".csv";
-      downloadFile(csv, convertedFileName, "text/csv");
+      downloadFile(csv, `${fileName}.csv`, "text/csv");
     } else {
       // Convert CSV to JSON
       readString(fileContent, {
@@ -59,7 +64,7 @@ export default function CSV2JSON() {
           });
           const json = JSON.stringify(data, null, 2);
           convertedFileName += ".json";
-          downloadFile(json, convertedFileName, "application/json");
+          downloadFile(json, `${fileName}.json`, "application/json");
         },
         header: true,
       });
@@ -82,7 +87,12 @@ export default function CSV2JSON() {
   return (
     <div className="container my-5">
       <div className="container-main">
-        <h1>File Converter</h1>
+        <h3>
+          CSV To JSON
+          <br /> OR
+          <br /> JSON To CSV
+          <br />File Converter
+        </h3>
         <input
           type="file"
           id="fileInput"
@@ -90,7 +100,7 @@ export default function CSV2JSON() {
           accept=".csv,.json"
           onChange={handleFileUpload}
         />
-        <button onClick={convertFile}>Convert and Download</button>
+        {/* <button onClick={convertFile}>Convert and Download</button> */}
       </div>
       <Tooltip anchorSelect=".container-main" place="top">
         Please Upload only .csv or .json files
