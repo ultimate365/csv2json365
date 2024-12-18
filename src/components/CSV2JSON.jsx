@@ -56,7 +56,7 @@ export default function CSV2JSON() {
           // Fix number values being parsed as strings
           const data = results.data.map((row) => {
             for (const key in row) {
-              if (!isNaN(row[key])) {
+              if (!isNaN(row[key]) && row[key].length <= 7) {
                 row[key] = Number(row[key]);
               }
             }
@@ -91,7 +91,8 @@ export default function CSV2JSON() {
           CSV To JSON
           <br /> OR
           <br /> JSON To CSV
-          <br />File Converter
+          <br />
+          File Converter
         </h3>
         <input
           type="file"
