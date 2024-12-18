@@ -1,12 +1,9 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import toast from "react-hot-toast";
 import { readString, jsonToCSV } from "react-papaparse";
 import { Tooltip } from "react-tooltip";
 export default function CSV2JSON() {
-  const [fileName, setFileName] = useState("");
-  const [fileContent, setFileContent] = useState("");
-
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     const fileNameWithoutExtension = file.name
@@ -14,22 +11,18 @@ export default function CSV2JSON() {
       .slice(0, -1)
       .join(".");
     if (file.type === "text/csv" || file.type === "application/json") {
-      setFileName(file.name.split(".").slice(0, -1).join(".")); // Remove extension
       const reader = new FileReader();
 
       reader.onload = () => {
         const fileContent = reader.result;
         convertFile(fileContent, fileNameWithoutExtension);
       };
-
       reader.readAsText(file);
     } else {
       toast.error("Invalid file uploaded");
       if (typeof window !== "undefined") {
         document.getElementById("fileInput").value = "";
       }
-      setFileName("");
-      setFileContent("");
     }
   };
 
@@ -78,7 +71,6 @@ export default function CSV2JSON() {
       });
     }
     // Clear file input and reset state
-    setFileContent("");
     if (typeof window !== "undefined") {
       document.getElementById("fileInput").value = "";
     }
