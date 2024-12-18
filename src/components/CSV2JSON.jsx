@@ -44,26 +44,34 @@ export default function CSV2JSON() {
   };
 
   const convertFile = (fileContent, fileName) => {
-    let convertedFileName = fileName;
     if (isJson(fileContent)) {
       // Convert JSON to CSV
-      const csv = jsonToCSV(JSON.parse(fileContent));
+      const data = JSON.parse(fileContent).map((row) => {
+        for (const key in row) {
+          if (typeof row[key] === "number" && row[key].toString().length >= 7) {
+            row[key] = row[key].toString();
+          }
+        }
+        return row;
+      });
+      const csv = jsonToCSV(data);
       downloadFile(csv, `${fileName}.csv`, "text/csv");
     } else {
       // Convert CSV to JSON
       readString(fileContent, {
         complete: (results) => {
-          // Fix number values being parsed as strings
+          // Fix number values being parsed as strings for length >= 7
           const data = results.data.map((row) => {
             for (const key in row) {
-              if (!isNaN(row[key]) && row[key].length <= 7) {
+              if (!isNaN(row[key]) && row[key].length >= 7) {
+                row[key] = row[key].toString();
+              } else if (!isNaN(row[key])) {
                 row[key] = Number(row[key]);
               }
             }
             return row;
           });
           const json = JSON.stringify(data, null, 2);
-          convertedFileName += ".json";
           downloadFile(json, `${fileName}.json`, "application/json");
         },
         header: true,
