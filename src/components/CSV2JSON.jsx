@@ -60,6 +60,12 @@ export default function CSV2JSON() {
                 row[key] = row[key].toString();
               } else if (!isNaN(row[key])) {
                 row[key] = Number(row[key]);
+              } else if (!isNaN(row[key]) && !row[key].includes(".")) {
+                row[key] = parseFloat(row[key]);
+              } else if (row[key].toLowerCase() === "true") {
+                row[key] = row[key].toLowerCase() === true;
+              } else if (row[key].toLowerCase() === "false") {
+                row[key] = row[key].toLowerCase() === false;
               }
             }
             return row;
