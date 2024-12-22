@@ -75,6 +75,8 @@ export default function CSV2JSON() {
                   cleanedRow[key] = row[key] === true;
                 } else if (row[key] === "FALSE") {
                   cleanedRow[key] = row[key] === false;
+                } else {
+                  cleanedRow[key] = row[key];
                 }
               }
               return cleanedRow;
