@@ -54,22 +54,31 @@ export default function CSV2JSON() {
       readString(fileContent, {
         complete: (results) => {
           // Fix number values being parsed as strings for length >= 7
-          const data = results.data.map((row) => {
-            for (const key in row) {
-              if (!isNaN(row[key]) && row[key].length >= 7) {
-                row[key] = row[key].toString();
-              } else if (!isNaN(row[key])) {
-                row[key] = Number(row[key]);
-              } else if (!isNaN(row[key]) && !row[key].includes(".")) {
-                row[key] = parseFloat(row[key]);
-              } else if (row[key].toLowerCase() === "true") {
-                row[key] = row[key].toLowerCase() === true;
-              } else if (row[key].toLowerCase() === "false") {
-                row[key] = row[key].toLowerCase() === false;
+          const data = results.data
+            .filter((row) => {
+              return Object.values(row).some(
+                (value) => value !== null && value !== ""
+              );
+            })
+            .map((row) => {
+              const cleanedRow = {};
+              for (const key in row) {
+                if (
+                  !isNaN(row[key]) &&
+                  row[key].length >= 7 &&
+                  !row[key].includes(".")
+                ) {
+                  cleanedRow[key] = row[key].toString();
+                } else if (!isNaN(row[key])) {
+                  cleanedRow[key] = parseFloat(row[key]);
+                } else if (row[key] === "TRUE") {
+                  cleanedRow[key] = row[key] === true;
+                } else if (row[key] === "FALSE") {
+                  cleanedRow[key] = row[key] === false;
+                }
               }
-            }
-            return row;
-          });
+              return cleanedRow;
+            });
           const json = JSON.stringify(data, null, 2);
           downloadFile(json, `${fileName}.json`, "application/json");
         },
