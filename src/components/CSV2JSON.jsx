@@ -3,27 +3,29 @@ import React from "react";
 import toast from "react-hot-toast";
 import { readString, jsonToCSV } from "react-papaparse";
 import { Tooltip } from "react-tooltip";
+
 export default function CSV2JSON() {
   const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    const fileNameWithoutExtension = file.name
-      .split(".")
-      .slice(0, -1)
-      .join(".");
-    if (file.type === "text/csv" || file.type === "application/json") {
-      const reader = new FileReader();
-
-      reader.onload = () => {
-        const fileContent = reader.result;
-        convertFile(fileContent, fileNameWithoutExtension);
-      };
-      reader.readAsText(file);
-    } else {
-      toast.error("Invalid file uploaded");
-      if (typeof window !== "undefined") {
-        document.getElementById("fileInput").value = "";
+    const selectedFiles = Array.from(event.target.files);
+    selectedFiles.forEach((file) => {
+      const fileNameWithoutExtension = file.name
+        .split(".")
+        .slice(0, -1)
+        .join(".");
+      if (file.type === "text/csv" || file.type === "application/json") {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const fileContent = reader.result;
+          convertFile(fileContent, fileNameWithoutExtension);
+        };
+        reader.readAsText(file);
+      } else {
+        toast.error("Invalid file uploaded");
+        if (typeof window !== "undefined") {
+          document.getElementById("fileInput").value = "";
+        }
       }
-    }
+    });
   };
 
   const downloadFile = (data, fileName, fileType) => {
@@ -101,6 +103,7 @@ export default function CSV2JSON() {
       return false;
     }
   };
+
   return (
     <div className="container my-5">
       <div className="container-main">
@@ -117,6 +120,7 @@ export default function CSV2JSON() {
           className="form-control"
           accept=".csv,.json"
           onChange={handleFileUpload}
+          multiple
         />
         {/* <button onClick={convertFile}>Convert and Download</button> */}
       </div>
