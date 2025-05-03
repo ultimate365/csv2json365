@@ -1,9 +1,9 @@
-import CSV2JSON from "@/components/CSV2JSON";
+import HomePage from "@/components/HomePage";
 
 export default function Home() {
   return (
     <div>
-      <CSV2JSON />
+      <HomePage/>
     </div>
   );
 }
