@@ -1,10 +1,11 @@
 "use client";
-import React from "react";
+import React, { useRef } from "react";
 import toast from "react-hot-toast";
 import { readString, jsonToCSV } from "react-papaparse";
 import { Tooltip } from "react-tooltip";
 
 export default function CSV2JSON() {
+  const ref = useRef();
   const handleFileUpload = (event) => {
     const selectedFiles = Array.from(event.target.files);
     selectedFiles.forEach((file) => {
@@ -36,6 +37,7 @@ export default function CSV2JSON() {
     a.download = fileName;
     a.click();
     a.remove();
+    ref.current.value = "";
   };
 
   const convertFile = (fileContent, fileName) => {
@@ -90,9 +92,9 @@ export default function CSV2JSON() {
       });
     }
     // Clear file input and reset state
-    if (typeof window !== "undefined") {
-      document.getElementById("fileInput").value = "";
-    }
+    // if (typeof window !== "undefined") {
+    //   document.getElementById("fileInput").value = "";
+    // }
   };
 
   const isJson = (str) => {
@@ -121,6 +123,7 @@ export default function CSV2JSON() {
           accept=".csv,.json"
           onChange={handleFileUpload}
           multiple
+          ref={ref}
         />
         {/* <button onClick={convertFile}>Convert and Download</button> */}
       </div>

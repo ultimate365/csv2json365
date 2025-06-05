@@ -1,11 +1,12 @@
 "use client";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { readString, jsonToCSV } from "react-papaparse";
 import { Tooltip } from "react-tooltip";
 import * as XLSX from "xlsx";
 
 export default function FileConverter() {
+  const ref = useRef();
   const [showFormatDialog, setShowFormatDialog] = useState(false);
   const [conversionData, setConversionData] = useState(null);
   const [conversionFileName, setConversionFileName] = useState("");
@@ -155,6 +156,7 @@ export default function FileConverter() {
     a.download = fileName;
     a.click();
     URL.revokeObjectURL(url);
+    ref.current.value = "";
   };
 
   const resetFileInput = () => {
@@ -184,6 +186,7 @@ export default function FileConverter() {
           accept=".csv,.json,.xlsx,.xls"
           onChange={handleFileUpload}
           multiple
+          ref={ref}
         />
       </div>
 
