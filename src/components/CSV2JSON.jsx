@@ -45,19 +45,25 @@ export default function CSV2JSON() {
       // Convert JSON to CSV
       const data = JSON.parse(fileContent).map((row) => {
         for (const key in row) {
+          // Convert long numbers to strings
           if (typeof row[key] === "number" && row[key].toString().length >= 7) {
             row[key] = row[key].toString();
+          }
+
+          // ✅ Convert arrays/objects into JSON strings for CSV compatibility
+          if (Array.isArray(row[key]) || typeof row[key] === "object") {
+            row[key] = JSON.stringify(row[key]);
           }
         }
         return row;
       });
+
       const csv = jsonToCSV(data);
       downloadFile(csv, `${fileName}.csv`, "text/csv");
     } else {
       // Convert CSV to JSON
       readString(fileContent, {
         complete: (results) => {
-          // Fix number values being parsed as strings for length >= 7
           const data = results.data
             .filter((row) => {
               return Object.values(row).some(
@@ -76,25 +82,32 @@ export default function CSV2JSON() {
                 } else if (!isNaN(row[key])) {
                   cleanedRow[key] = parseFloat(row[key]);
                 } else if (row[key] === "TRUE") {
-                  cleanedRow[key] = row[key] === true;
+                  cleanedRow[key] = true;
                 } else if (row[key] === "FALSE") {
-                  cleanedRow[key] = row[key] === false;
+                  cleanedRow[key] = false;
                 } else {
                   cleanedRow[key] = row[key];
+                }
+
+                // ✅ If the value looks like a JSON array/object, parse it back
+                try {
+                  const parsed = JSON.parse(row[key]);
+                  if (typeof parsed === "object") {
+                    cleanedRow[key] = parsed;
+                  }
+                } catch (e) {
+                  // leave as is
                 }
               }
               return cleanedRow;
             });
+
           const json = JSON.stringify(data, null, 2);
           downloadFile(json, `${fileName}.json`, "application/json");
         },
         header: true,
       });
     }
-    // Clear file input and reset state
-    // if (typeof window !== "undefined") {
-    //   document.getElementById("fileInput").value = "";
-    // }
   };
 
   const isJson = (str) => {
