@@ -11,6 +11,26 @@ export default function FileConverter() {
   const [conversionData, setConversionData] = useState(null);
   const [conversionFileName, setConversionFileName] = useState("");
 
+  // --- flatten {month,year,id,leaves[]} into row-per-leave ---
+  const flattenData = (data) => {
+    const flattened = [];
+    data.forEach((item) => {
+      if (Array.isArray(item.leaves)) {
+        item.leaves.forEach((leave) => {
+          flattened.push({
+            month: item.month,
+            year: item.year,
+            monthId: item.id, // avoid collision
+            ...leave,
+          });
+        });
+      } else {
+        flattened.push(item);
+      }
+    });
+    return flattened;
+  };
+
   const cleanRow = (row) => {
     const cleanedRow = {};
     for (const key in row) {
@@ -123,11 +143,14 @@ export default function FileConverter() {
     if (!conversionData || !conversionFileName) return;
 
     try {
+      // 🔥 flatten here
+      const flatData = flattenData(conversionData);
+
       if (format === "csv") {
-        const csv = jsonToCSV(conversionData);
+        const csv = jsonToCSV(flatData);
         downloadFile(csv, `${conversionFileName}.csv`, "text/csv");
       } else if (format === "xlsx") {
-        const worksheet = XLSX.utils.json_to_sheet(conversionData);
+        const worksheet = XLSX.utils.json_to_sheet(flatData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
         const xlsxBuffer = XLSX.write(workbook, {
