@@ -11,7 +11,7 @@ export default function FileConverter() {
   const [conversionData, setConversionData] = useState(null);
   const [conversionFileName, setConversionFileName] = useState("");
 
-  // --- flatten {month,year,id,leaves[]} into row-per-leave ---
+  // --- flatten JSON -> rows ---
   const flattenData = (data) => {
     const flattened = [];
     data.forEach((item) => {
@@ -20,7 +20,7 @@ export default function FileConverter() {
           flattened.push({
             month: item.month,
             year: item.year,
-            monthId: item.id, // avoid collision
+            monthId: item.id, // rename to avoid collision
             ...leave,
           });
         });
@@ -29,6 +29,25 @@ export default function FileConverter() {
       }
     });
     return flattened;
+  };
+
+  // --- group rows -> nested JSON ---
+  const nestData = (rows) => {
+    const grouped = {};
+    rows.forEach((row) => {
+      const { month, year, monthId, ...leave } = row;
+      const key = `${month}-${year}`;
+      if (!grouped[key]) {
+        grouped[key] = {
+          month,
+          year,
+          id: monthId || key,
+          leaves: [],
+        };
+      }
+      grouped[key].leaves.push(leave);
+    });
+    return Object.values(grouped);
   };
 
   const cleanRow = (row) => {
@@ -113,8 +132,12 @@ export default function FileConverter() {
             Object.values(row).some((v) => v !== null && v !== "")
           )
           .map(cleanRow);
+
+        // 🔥 group into nested JSON
+        const nested = nestData(cleanedData);
+
         downloadFile(
-          JSON.stringify(cleanedData, null, 2),
+          JSON.stringify(nested, null, 2),
           `${fileName}.json`,
           "application/json"
         );
@@ -128,9 +151,13 @@ export default function FileConverter() {
       const data = new Uint8Array(arrayBuffer);
       const workbook = XLSX.read(data, { type: "array" });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet).map(cleanRow);
+      const rows = XLSX.utils.sheet_to_json(worksheet).map(cleanRow);
+
+      // 🔥 group into nested JSON
+      const nested = nestData(rows);
+
       downloadFile(
-        JSON.stringify(jsonData, null, 2),
+        JSON.stringify(nested, null, 2),
         `${fileName}.json`,
         "application/json"
       );
@@ -143,7 +170,7 @@ export default function FileConverter() {
     if (!conversionData || !conversionFileName) return;
 
     try {
-      // 🔥 flatten here
+      // flatten before export
       const flatData = flattenData(conversionData);
 
       if (format === "csv") {
